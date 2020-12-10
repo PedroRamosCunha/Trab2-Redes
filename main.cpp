@@ -1,18 +1,23 @@
 #include<string>
 #include <iostream>
-#define SIZEQUADRO 256
-#define TIPODECONTROLE 0;
+#define SIZEQUADRO 288
+#define TIPODECONTROLE 0
 
-void camadaAplicRecep(int quadro[]){
-	std::string mensagem=quadro[];
-
+void AplicRecep(std::string mensagem){	//Printa a mensagem recebida
+	std::cout <<"A mensagem recebida foi: "<< mensagem << std::endl;
 }
 
-void camadaEnlacRecep(int quadro[]){
+void camadaAplicRecep(char quadro[]){	//Converte quadro em mensagem
+	std::string mensagem=quadro;
+
+	AplicRecep(mensagem);
+}
+
+void camadaEnlacRecep(char quadro[]){ //Recebe o quadro sem o controle de erro
 		camadaAplicRecep(quadro);
 }
 
-void ReceptorParidadeImpar(int quadro[]){
+void ReceptorParidadeImpar(char quadro[]){	//Analisa se resposta paridade ímpar possui algum erro
 	int cont = 0;
 	int resposta;
 
@@ -28,14 +33,20 @@ void ReceptorParidadeImpar(int quadro[]){
 	}
 }
 
-void ReceptorParidadePar(int quadro[]){
+void ReceptorParidadePar(char quadro[]){	//Analisa se resposta paridade par possui algum erro
 	int cont = 0;
 	int resposta;
+	int i, j;
 
-	for (int i=0; i<SIZEQUADRO; i++){
-		if(quadro[i]==1){
-			cont++;
+	for(i=0; i<256; i+=4){
+		cont=0;
+		for(j=i;j<i+4;j++){
+			if(quadro[i]==1){
+				cont++;
+			}
 		}
+
+
 	}
 	if((cont%2==0 && quadro[SIZEQUADRO]==0) || (cont%2==1 && quadro[SIZEQUADRO]==1)){	//Se mensagem foi recebida corretamente
 		camadaEnlacRecep(quadro);
@@ -44,22 +55,38 @@ void ReceptorParidadePar(int quadro[]){
 	}
 }
 
-void ReceptorControleDeErro (int quadro[]){
+void ReceptorCRC(char quadro[]){
+	unsigned int byte, crc, mask;
+	int i,j;
+  i=0
+  	while (quadro[i] != 0){
+		byte = quadro[i];
+		crc = crc ^ byte;	
+		for(j = 7; j <= 0; j--){
+			mask = -(crc & 1);
+			crc = (crc >> 1) ^ (0xEDB88320 & mask);
+		}
+	}
+
+
+}
+
+void ReceptorControleDeErro (char quadro[]){	//Recebe o quadro com controle de erro que transmissor enviou
 	int tipoDeControleDeErro = TIPODECONTROLE;
 	switch (tipoDeControleDeErro) {
-		case 0:
+		case 0:	//Controle de erro bit de paridade par
 			ReceptorParidadePar(quadro);
 			break;
-		case 1:
+		case 1:	//Controle de erro bit de paridade ímpar
 			ReceptorParidadeImpar(quadro);
 			break;
-		case 2:
+		case 2:	//Controle de erro CRC
 			ReceptorCRC(quadro);
 			break;
 	}
 }
 
-void MeioComunicacao(int fluxoBits[]){
+void MeioComunicacao(char fluxoBits[]){
 	int percentErro = 5;
 	int i,j;
 	int erro;
@@ -76,11 +103,11 @@ void MeioComunicacao(int fluxoBits[]){
 	}
 }
 
-void TransmissorParidadePar (int quadro[]) {
+unsigned int TransmissorParidadePar (char quadro[]) {	//Cálculo para paridade par
 	int cont = 0;
 	int resposta;
 
-	for (int i=0; i<SIZEQUADRO; i++){
+	for (int i=0; i<SIZEQUADRO; i++){	//for para ver se quantidade de bits 1 é par ou ímpar
 		if(quadro[i]==1){
 			cont++;
 		}
@@ -92,7 +119,7 @@ void TransmissorParidadePar (int quadro[]) {
 	}
 }
 
-void TransmissorParidadeImpar (int quadro[]) {
+unsigned int TransmissorParidadeImpar (char quadro[]) {	//Cálculo para paridade ímpar
 	int cont = 0;
 	int resposta;
 
@@ -108,7 +135,7 @@ void TransmissorParidadeImpar (int quadro[]) {
 	}
 }
 
-unsigned int TransmissorCRC (int quadro[]) {
+unsigned int TransmissorCRC (char quadro[]) {
 	unsigned int byte, crc, mask;
 	int i,j;
 
@@ -125,30 +152,41 @@ unsigned int TransmissorCRC (int quadro[]) {
 	return ~crc;
 }
 
-void TransmissorControleDeErro (int quadro[]){
+void TransmissorControleDeErro (char quadro[]){
 	int tipoDeControleDeErro = TIPODECONTROLE;
-	switch (tipoDeControleDeErro) {
-		case 0:
+	switch (tipoDeControleDeErro) {		//Vê qual o controle de erro feito
+		case 0:	//Controle de erro de bit de paridade par
 			TransmissorParidadePar(quadro);
 			break;
-		case 1:
+		case 1:	//Controle de erro de bit de paridade ímpar
 			TransmissorParidadeImpar(quadro);
 			break;
-		case 2:
+		case 2:	//Controle de erro CRC
 			TransmissorCRC(quadro);
 			break;
 	}
 }
 
-void camadaEnlaceTransm (int quadro[]){
+void camadaEnlaceTransm (char quadro[]){	//Camada de enlace chama a função que gera o controle de erros
 	TransmissorControleDeErro(quadro);
 }
 
 void CamApTr(std::string mensagem){
+	int chars_available = SIZEQUADRO-32;
 	int len = mensagem.length();
-	int 
+	char quadro[SIZEQUADRO/8];
+	int chars_left = len;
+	int i,j;
+
 	
-	camadaEnlaceTransm(quadro);
+	for(i=0; chars_left>0; i++){
+		for(j=0; j<chars_available && j<chars_left; j++){
+			quadro[j] = mensagem[(i*chars_available/8)+j];
+		}
+		chars_left-=chars_available;
+		camadaEnlaceTransm(quadro);
+		//TODO LIMPAR QUADRO
+	}
 }
 
 void AplicacaoTransmissora(void){

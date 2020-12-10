@@ -34,31 +34,39 @@ void ReceptorParidadeImpar(char quadro[]){	//Analisa se resposta paridade ímpar
 }
 
 void ReceptorParidadePar(char quadro[]){	//Analisa se resposta paridade par possui algum erro
-	int cont = 0;
-	int resposta;
 	int i, j;
+	int k=0;
+	int cont = 0;
+	unsigned int resposta;
 
-	for(i=0; i<256; i+=4){
+	for(i=0; i<256*8; i+=4){
 		cont=0;
 		for(j=i;j<i+4;j++){
 			if(quadro[i]==1){
 				cont++;
 			}
 		}
-
-
+		if(cont%2==0){	//Se for par add 1
+			resposta++;
+		}
+		if(i!=255){
+			resposta=(resposta<<1);
+		}
 	}
-	if((cont%2==0 && quadro[SIZEQUADRO]==0) || (cont%2==1 && quadro[SIZEQUADRO]==1)){	//Se mensagem foi recebida corretamente
-		camadaEnlacRecep(quadro);
-	}else{	//se ocorreu um erro na transmissão
-		std::cout <<"Erro ao receber a mensagem" << std::endl;
-	}
+	
 }
 
-void ReceptorCRC(char quadro[]){
-  GeradorCRC(quadro(SIZEQUADRO)
-  
-  std::cout <<"Erro ao receber a mensagem" << std::endl;
+void ReceptorCRC(int quadro[]){
+  char CRC[31] = GeradorCRC(quadro[SIZEQUADRO]);
+  cont = 0;
+  for(int i=0, i<32, i++)
+  {
+  if(CRC[i]!=quadro[SIZEQUADRO-32+i])
+  {cont++}
+  }
+  if(cont>0) //Caso tenha algum erro cont>0
+  {std::cout <<"Erro ao receber a mensagem" << std::endl;}
+
 }
 
 void ReceptorControleDeErro (char quadro[]){	//Recebe o quadro com controle de erro que transmissor enviou
@@ -77,14 +85,14 @@ void ReceptorControleDeErro (char quadro[]){	//Recebe o quadro com controle de e
 }
 
 void MeioComunicacao(char fluxoBits[]){
-	int percentErro = 5;
+	int chance_erro = 1;
 	int i,j;
 	int erro;
 
 	for(i=0; i<(SIZEQUADRO/sizeof(int)); i++){
 		erro=0;
 		for(j=0; j<8; j++){
-			if(rand()%100<percentErro){
+			if(rand()%1000<chance_erro){//75% chance de não ter nenhum erro
 				erro++;
 			}
 			erro = erro << 1;
@@ -97,38 +105,46 @@ unsigned int TransmissorParidadePar (char quadro[]) {	//Cálculo para paridade p
 	int i, j;
 	int k=0;
 	int cont = 0;
-	int resposta;
+	unsigned int resposta;
 
-	for(i=0; i<256; i+=4){
+	for(i=0; i<256*8; i+=4){
 		cont=0;
 		for(j=i;j<i+4;j++){
 			if(quadro[i]==1){
 				cont++;
 			}
 		}
-		if(cont%2==0){	//Se for par
-			
-		}else{	//se for ímpar
-			quadro[SIZEQUADRO]=1;
+		if(cont%2==0){	//Se for par add 1
+			resposta++;
 		}
-
+		if(i!=255){
+			resposta=(resposta<<1);
+		}
 	}
+	return resposta;
 }
 
 unsigned int TransmissorParidadeImpar (char quadro[]) {	//Cálculo para paridade ímpar
+	int i, j;
+	int k=0;
 	int cont = 0;
-	int resposta;
+	unsigned int resposta;
 
-	for (int i=0; i<SIZEQUADRO; i++){	//for para ver se quantidade de bits 1 é par ou ímpar
-		if(quadro[i]==1){
-			cont++;
+	for(i=0; i<256*8; i+=4){
+		cont=0;
+		for(j=i;j<i+4;j++){
+			if(quadro[i]==1){
+				cont++;
+			}
+		}
+		if(cont%2==1){	//Se for ímpar add 1
+			resposta++;
+		}
+		if(i!=255){
+			resposta=(resposta<<1);
 		}
 	}
-	if(cont%2==0){	//Se for par
-		quadro[SIZEQUADRO]=1;
-	}else{	//se for ímpar
-		quadro[SIZEQUADRO]=0;
-	}
+	return resposta;
 }
 
 unsigned int TransmissorCRC (char quadro[]) {
@@ -151,8 +167,8 @@ unsigned int TransmissorCRC (char quadro[]) {
 
 void TransmissorControleDeErro (char quadro[]){
 	int tipoDeControleDeErro = TIPODECONTROLE;
+	int len = SIZEQUADRO/8;
 	unsigned int res;
-	
 	switch (tipoDeControleDeErro) {		//Vê qual o controle de erro feito
 		case 0:	//Controle de erro de bit de paridade par
 			res = TransmissorParidadePar(quadro);
@@ -165,10 +181,10 @@ void TransmissorControleDeErro (char quadro[]){
 			break;
 	}
 
-	quadro[(SIZEQUADRO/8)-4] += res >> 8*3;
-	quadro[(SIZEQUADRO/8)-3] += res >> 8*2;
-	quadro[(SIZEQUADRO/8)-2] += res >> 8;
-	quadro[(SIZEQUADRO/8)-1] += res;
+	quadro[len-4] += res >> 8*3;
+	quadro[len-3] += res >> 8*2;
+	quadro[len-2] += res >> 8;
+	quadro[len-1] += res;
 }
 
 void camadaEnlaceTransm (char quadro[]){	//Camada de enlace chama a função que gera o controle de erros
@@ -207,4 +223,6 @@ void AplicacaoTransmissora(void){
 
 int main (void){
 	AplicacaoTransmissora();
+
+	return 0;
 }

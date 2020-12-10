@@ -35,24 +35,25 @@ void ReceptorParidadeImpar(char quadro[]){	//Analisa se resposta paridade ímpar
 
 void ReceptorParidadePar(char quadro[]){	//Analisa se resposta paridade par possui algum erro
 	int i, j;
-	int k=0;
+	int k=(SIZEQUADRO-32)/sizeof(int)-1;
 	int cont = 0;
 	unsigned int resposta;
 	int flag=0;		//flag para saber se teve algum erro
 
-	for(i=0; i<256*8; i+=4){
+	for(i=0; i<(SIZEQUADRO-32)/sizeof(int); i+=4){
 		cont=0;
 		for(j=i;j<i+4;j++){
 			if(quadro[i]==1){
 				cont++;
 			}
 		}
-		if(cont%2==0){	//Se for par add 1
+		if(cont%2==0 && (resposta>>k)==){	//Se for par add 1
 			resposta++;
 		}
 		if(i!=255){
 			resposta=(resposta<<1);
 		}
+		k--;
 	}
 	
 }
@@ -107,7 +108,7 @@ unsigned int TransmissorParidadePar (char quadro[]) {	//Cálculo para paridade p
 	int cont = 0;
 	unsigned int resposta;
 
-	for(i=0; i<256*8; i+=4){
+	for(i=0; i<(SIZEQUADRO-32)/sizeof(char); i+=4){
 		cont=0;
 		for(j=i;j<i+4;j++){
 			if(quadro[i]==1){
@@ -129,7 +130,7 @@ unsigned int TransmissorParidadeImpar (char quadro[]) {	//Cálculo para paridade
 	int cont = 0;
 	unsigned int resposta;
 
-	for(i=0; i<256*8; i+=4){
+	for(i=0; i<(SIZEQUADRO-32)/sizeof(char); i+=4){
 		cont=0;
 		for(j=i;j<i+4;j++){
 			if(quadro[i]==1){

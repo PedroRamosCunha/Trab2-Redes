@@ -38,6 +38,7 @@ void ReceptorParidadePar(char quadro[]){	//Analisa se resposta paridade par poss
 	int k=0;
 	int cont = 0;
 	unsigned int resposta;
+	int flag=0;		//flag para saber se teve algum erro
 
 	for(i=0; i<256*8; i+=4){
 		cont=0;
@@ -103,7 +104,6 @@ void MeioComunicacao(char fluxoBits[]){
 
 unsigned int TransmissorParidadePar (char quadro[]) {	//Cálculo para paridade par
 	int i, j;
-	int k=0;
 	int cont = 0;
 	unsigned int resposta;
 
@@ -126,7 +126,6 @@ unsigned int TransmissorParidadePar (char quadro[]) {	//Cálculo para paridade p
 
 unsigned int TransmissorParidadeImpar (char quadro[]) {	//Cálculo para paridade ímpar
 	int i, j;
-	int k=0;
 	int cont = 0;
 	unsigned int resposta;
 

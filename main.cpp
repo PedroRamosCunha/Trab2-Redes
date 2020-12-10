@@ -56,19 +56,9 @@ void ReceptorParidadePar(char quadro[]){	//Analisa se resposta paridade par poss
 }
 
 void ReceptorCRC(char quadro[]){
-	unsigned int byte, crc, mask;
-	int i,j;
-  i=0
-  	while (quadro[i] != 0){
-		byte = quadro[i];
-		crc = crc ^ byte;	
-		for(j = 7; j <= 0; j--){
-			mask = -(crc & 1);
-			crc = (crc >> 1) ^ (0xEDB88320 & mask);
-		}
-	}
-
-
+  GeradorCRC(quadro(SIZEQUADRO)
+  
+  std::cout <<"Erro ao receber a mensagem" << std::endl;
 }
 
 void ReceptorControleDeErro (char quadro[]){	//Recebe o quadro com controle de erro que transmissor enviou
@@ -104,18 +94,24 @@ void MeioComunicacao(char fluxoBits[]){
 }
 
 unsigned int TransmissorParidadePar (char quadro[]) {	//Cálculo para paridade par
+	int i, j;
+	int k=0;
 	int cont = 0;
 	int resposta;
 
-	for (int i=0; i<SIZEQUADRO; i++){	//for para ver se quantidade de bits 1 é par ou ímpar
-		if(quadro[i]==1){
-			cont++;
+	for(i=0; i<256; i+=4){
+		cont=0;
+		for(j=i;j<i+4;j++){
+			if(quadro[i]==1){
+				cont++;
+			}
 		}
-	}
-	if(cont%2==0){	//Se for par
-		quadro[SIZEQUADRO]=0;
-	}else{	//se for ímpar
-		quadro[SIZEQUADRO]=1;
+		if(cont%2==0){	//Se for par
+			
+		}else{	//se for ímpar
+			quadro[SIZEQUADRO]=1;
+		}
+
 	}
 }
 
@@ -148,23 +144,31 @@ unsigned int TransmissorCRC (char quadro[]) {
 			mask = -(crc & 1);
 			crc = (crc >> 1) ^ (0xEDB88320 & mask);
 		}
+		i++;
 	}
 	return ~crc;
 }
 
 void TransmissorControleDeErro (char quadro[]){
 	int tipoDeControleDeErro = TIPODECONTROLE;
+	unsigned int res;
+	
 	switch (tipoDeControleDeErro) {		//Vê qual o controle de erro feito
 		case 0:	//Controle de erro de bit de paridade par
-			TransmissorParidadePar(quadro);
+			res = TransmissorParidadePar(quadro);
 			break;
 		case 1:	//Controle de erro de bit de paridade ímpar
-			TransmissorParidadeImpar(quadro);
+			res = TransmissorParidadeImpar(quadro);
 			break;
 		case 2:	//Controle de erro CRC
-			TransmissorCRC(quadro);
+			res = TransmissorCRC(quadro);
 			break;
 	}
+
+	quadro[(SIZEQUADRO/8)-4] += res >> 8*3;
+	quadro[(SIZEQUADRO/8)-3] += res >> 8*2;
+	quadro[(SIZEQUADRO/8)-2] += res >> 8;
+	quadro[(SIZEQUADRO/8)-1] += res;
 }
 
 void camadaEnlaceTransm (char quadro[]){	//Camada de enlace chama a função que gera o controle de erros
@@ -172,7 +176,7 @@ void camadaEnlaceTransm (char quadro[]){	//Camada de enlace chama a função que
 }
 
 void CamApTr(std::string mensagem){
-	int chars_available = SIZEQUADRO-32;
+	int chars_available = (SIZEQUADRO-32)/8;
 	int len = mensagem.length();
 	char quadro[SIZEQUADRO/8];
 	int chars_left = len;
@@ -181,11 +185,15 @@ void CamApTr(std::string mensagem){
 	
 	for(i=0; chars_left>0; i++){
 		for(j=0; j<chars_available && j<chars_left; j++){
-			quadro[j] = mensagem[(i*chars_available/8)+j];
+			quadro[j] = mensagem[(i*chars_available)+j];
 		}
-		chars_left-=chars_available;
+		
 		camadaEnlaceTransm(quadro);
-		//TODO LIMPAR QUADRO
+
+		chars_left-=chars_available;
+		for(j=0; j<(SIZEQUADRO/8); j++){
+			quadro[j]=0;
+		}
 	}
 }
 

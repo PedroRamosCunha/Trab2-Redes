@@ -1,8 +1,12 @@
 # Trab2-Redes
-##Membros do projeto\\
-Gabriela Barion Vidal - 4277535\\
-Pedro Ramos Cunha - 10892248\\
-Rodrigo Bragato Piva - 10684573\\
+##Membros do projeto
+
+Gabriela Barion Vidal - 4277535
+
+Pedro Ramos Cunha - 10892248
+
+Rodrigo Bragato Piva - 10684573
+
 
 ##Descrição do projeto
 O projeto consiste em simular o funcionamento da camada de enlace de uma transmissão.
